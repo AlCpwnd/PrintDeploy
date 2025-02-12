@@ -56,6 +56,48 @@ function Add-NetworkPrinter {
         "Printer $Name is already present" | Out-File @Parameters
     }
     return
+
+    <#
+        .SYNOPSIS
+        Adds a network printer to the current computer.
+
+        .DESCRIPTION
+        Verifies if the required port and drivers are present on the device before
+        trying to add the requested printer to the device.
+
+        .PARAMETER Name
+        Name given to the printer.
+
+        .PARAMETER DriverName
+        Name of the driver.
+
+        .PARAMETER DriverPath
+        Path to the INF file to install the driver.
+
+        .PARAMETER IP
+        IP on which the printer can be found and port that will be configured on the device.
+
+        .INPUTS
+        None. You can't pipe objects to Add-NetworkPrinter.
+
+        .OUTPUTS
+        The script will create a log file in the script's current directory named after the script.
+
+        .EXAMPLE
+        PS> Add-NetworkPrinter -Name "Admin Printer" -DriverName "KONICA MINOLTA Universal PCL" -DriverPath ".\Drivers\KOAWUJ__.inf" -IP "10.10.0.1"
+
+        .LINK
+        Online version: https://github.com/AlCpwnd/PrintDeploy
+
+        .LINK
+        Get-Printer
+
+        .LINK
+        Get-PrinterDriver
+
+        .LINK
+        Get-PrinterPort
+    #>
 }
 
 switch ($PsCmdlet.ParameterSetName) {
@@ -69,3 +111,50 @@ switch ($PsCmdlet.ParameterSetName) {
         }
     }
 }
+
+
+
+<#
+    .SYNOPSIS
+    Adds a network printer to the current computer.
+
+    .DESCRIPTION
+    Verifies if the required port and drivers are present on the device before
+    trying to add the requested printer to the device.
+
+    .PARAMETER Name
+    Name given to the printer.
+
+    .PARAMETER DriverName
+    Name of the driver.
+
+    .PARAMETER DriverPath
+    Path to the INF file to install the driver.
+
+    .PARAMETER IP
+    IP on which the printer can be found and port that will be configured on the device.
+
+    .PARAMETER File
+    CSV configuration file containing the multiple printers you want to add to the current device.
+
+    .INPUTS
+    None. You can't pipe objects to Add-NetworkPrinter.
+
+    .OUTPUTS
+    The script will create a log file in the current 
+
+    .EXAMPLE
+    PS> Add-NetworkPrinter -Name "Admin Printer" -DriverName "KONICA MINOLTA Universal PCL" -DriverPath ".\Drivers\KOAWUJ__.inf" -IP "10.10.0.1"
+
+    .LINK
+    Online version: https://github.com/AlCpwnd/PrintDeploy
+
+    .LINK
+    Get-Printer
+
+    .LINK
+    Get-PrinterDriver
+
+    .LINK
+    Get-PrinterPort
+#>
