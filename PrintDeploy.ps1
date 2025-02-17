@@ -23,6 +23,15 @@ function Add-NetworkPrinter {
         Append = $true
     }
 
+    # Replaces relative paths with fully defined ones.
+    if($Path -match '\.\\'){
+        $Path = $Path.Replace('.\',"$PSScriptRoot\")
+    }
+    
+    if($DriverPath -match '\.\\'){
+        $DriverPath = $DriverPath.Replace('.\',"$PSScriptRoot\")
+    }
+
     "Attempting to add printer : $Name" | Out-File @Parameters
 
     # Portconfiguration.
