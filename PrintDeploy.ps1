@@ -16,7 +16,7 @@ function Add-NetworkPrinter {
         [Parameter(Mandatory,ParameterSetName='Printer')][String]$IP
     )
 
-    $LogPath = $PSCommandPath.Replace(".ps1",".log")
+    $LogPath = "$env:windir\Temp\$((Split-Path $PSCommandPath -Leaf).Replace('.ps1','.log'))"
     $Parameters = @{
         FilePath = $LogPath
         Encoding = "utf8"
