@@ -1,10 +1,1 @@
-*.ca_
-*.cab
-*.cat
-*.ch_
-*.chm
-*.dl_
-*.dll
-*.ex_
-*.exe
-*.inf
+/Drivers/*
