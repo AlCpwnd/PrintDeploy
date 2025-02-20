@@ -32,7 +32,7 @@ Adds a network printer to the current computer.
 
 ### Syntax
 
-```
+```txt
 PrintDeploy.ps1 -Name <String> -DriverName <String> -DriverPath <String> -IP <String> [<CommonParameters>]
 PrintDeploy.ps1 -Path <String> [<CommonParameters>]
 ```
@@ -43,7 +43,6 @@ Verifies if the required port and drivers are present on the device before
 trying to add the requested printer to the device.
 
 ### Examples
-
 
 #### Example 1
 
@@ -57,7 +56,7 @@ Add-NetworkPrinter -Name "Admin Printer" -DriverName "KONICA MINOLTA Universal P
 
 Name given to the printer.
 
-```
+```txt
 Type: String
 Parameter Sets: Printer
 
@@ -72,7 +71,7 @@ Accept wildcard characters: false
 
 Name of the driver.
 
-```
+```txt
 Type: String
 Parameter Sets: Printer
 
@@ -87,7 +86,7 @@ Accept wildcard characters: false
 
 Path to the INF file to install the driver.
 
-```
+```txt
 Type: String
 Parameter Sets: Printer
 
@@ -102,7 +101,7 @@ Accept wildcard characters: false
 
 IP on which the printer can be found and port that will be configured on the device.
 
-```
+```txt
 Type: String
 Parameter Sets: Printer
 
@@ -117,7 +116,7 @@ Accept wildcard characters: false
 
 CSV configuration file containing the multiple printers you want to add to the current device.
 
-```
+```txt
 Type: String
 Parameter Sets: File
 
@@ -130,6 +129,8 @@ Accept wildcard characters: false
 
 ### Related Links
 
-* [Get-Printer](https://learn.microsoft.com/powershell/module/printmanagement/get-printer?view=windowsserver2025-ps&wt.mc_id=ps-gethelp
-* [Get-PrinterDriver](https://learn.microsoft.com/powershell/module/printmanagement/get-printerdriver?view=windowsserver2025-ps&wt.mc_id=ps-gethelp
-* [Get-PrinterPort](https://learn.microsoft.com/powershell/module/printmanagement/get-printerport?view=windowsserver2025-ps&wt.mc_id=ps-gethelp
+- [Get-Printer](https://learn.microsoft.com/powershell/module/printmanagement/get-printer?view=windowsserver2025-ps&wt.mc_id=ps-gethelp)
+
+- [Get-PrinterDriver](https://learn.microsoft.com/powershell/module/printmanagement/get-printerdriver?view=windowsserver2025-ps&wt.mc_id=ps-gethelp)
+
+- [Get-PrinterPort](https://learn.microsoft.com/powershell/module/printmanagement/get-printerport?view=windowsserver2025-ps&wt.mc_id=ps-gethelp)
