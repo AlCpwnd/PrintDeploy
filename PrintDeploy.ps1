@@ -24,6 +24,8 @@ function Add-NetworkPrinter {
         Append = $true
     }
 
+    "$(Get-Date -Format 'yyyyMMdd - HH:mm:ss' ) - Start printer install : $Name" | Out-File @Parameters
+
     # Replaces relative paths with fully defined ones.
     if($DriverPath -match '\.\\'){
         $DriverPath = $DriverPath.Replace('.\',"$PSScriptRoot\")
