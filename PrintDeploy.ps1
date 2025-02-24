@@ -24,10 +24,6 @@ function Add-NetworkPrinter {
     }
 
     # Replaces relative paths with fully defined ones.
-    if($Path -match '\.\\'){
-        $Path = $Path.Replace('.\',"$PSScriptRoot\")
-    }
-    
     if($DriverPath -match '\.\\'){
         $DriverPath = $DriverPath.Replace('.\',"$PSScriptRoot\")
     }
@@ -114,7 +110,20 @@ switch ($PsCmdlet.ParameterSetName) {
         Add-NetworkPrinter -Name $Name -DriverName $DriverName -DriverPath $DriverPath -IP $IP
     }
     "File" {
-        $Printers = Import-Csv -Path $Path
+        # Creates a log file in the Windows temp directory.
+        $LogPath = "$env:windir\Temp\$((Split-Path $PSCommandPath -Leaf).Replace('.ps1','.log'))"
+        $Parameters = @{
+            FilePath = $LogPath
+            Encoding = "utf8"
+            Append = $true
+        }
+        # Replaces relative paths with fully defined ones.
+        if($Path -match '\.\\'){
+            $Path = $Path.Replace('.\',"$PSScriptRoot\")
+            "Relative path replaced with literalpath : $Path" | Out-File @Parameters
+        }
+        "Recovering printers from config file : $Path"
+        $Printers = Import-Csv -Path $Path | Out-File @Parameters
         foreach($Printer in $Printers){
             Add-NetworkPrinter -Name $Printer.Name -DriverName $Printer.DriverName -DriverPath $Printer.DriverPath -IP $Printer.IP
         }
