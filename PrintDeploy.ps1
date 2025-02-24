@@ -2,7 +2,7 @@
 
 param(
     [Parameter(Mandatory,ParameterSetName='Printer')][String]$Name,
-    [Parameter(Mandatory,ParameterSetName='Printer')][String]$DriverName,
+    [Parameter(ParameterSetName='Printer')][String]$DriverName,
     [Parameter(Mandatory,ParameterSetName='Printer')][String]$DriverPath,
     [Parameter(Mandatory,ParameterSetName='Printer')][String]$IP,
     [Parameter(Mandatory,ParameterSetName='File')][String]$Path
@@ -11,11 +11,12 @@ param(
 function Add-NetworkPrinter {
     param(
         [Parameter(Mandatory,ParameterSetName='Printer')][String]$Name,
-        [Parameter(Mandatory,ParameterSetName='Printer')][String]$DriverName,
+        [Parameter(ParameterSetName='Printer')][AllowEmptyString()][String]$DriverName,
         [Parameter(Mandatory,ParameterSetName='Printer')][String]$DriverPath,
         [Parameter(Mandatory,ParameterSetName='Printer')][String]$IP
     )
 
+    # Creates a log file in the Windows temp directory.
     $LogPath = "$env:windir\Temp\$((Split-Path $PSCommandPath -Leaf).Replace('.ps1','.log'))"
     $Parameters = @{
         FilePath = $LogPath
@@ -26,6 +27,14 @@ function Add-NetworkPrinter {
     # Replaces relative paths with fully defined ones.
     if($DriverPath -match '\.\\'){
         $DriverPath = $DriverPath.Replace('.\',"$PSScriptRoot\")
+        "Relative path replaced with literalpath : $DriverPath" | Out-File @Parameters
+    }
+
+    # Recovers the driver's name from the INF file.
+    if(!$DriverName){
+        "No Driver Name given, recovering it from the INF file." | Out-File @Parameters
+        $DriverName = (Get-Content -Path $DriverPath | Where-Object{$_ -match "DiskName="}).Replace('"','').Split('=')[1]
+        "DriverName found : $DriverName" | Out-File @Parameters
     }
 
     "Attempting to add printer : $Name" | Out-File @Parameters
@@ -49,14 +58,13 @@ function Add-NetworkPrinter {
         Add-PrinterDriver $DriverName
     }else{
         "Driver $DriverName already present" | Out-File @Parameters
-        $Driver = $Drivers.Name[$Drivers.Name.IndexOf($DriverName)]
     }
 
     # PrinterConfiguration.
     $Printers = Get-Printer
     if($Printers.Name -notcontains $Name){
         "Printer $Name has been added" | Out-File @Parameters
-        Add-Printer -Name $Name -DriverName $Driver -PortName $Port
+        Add-Printer -Name $Name -DriverName $DriverName -PortName $Port
     }else{
         "Printer $Name is already present" | Out-File @Parameters
     }
