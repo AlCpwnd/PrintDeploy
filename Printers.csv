@@ -1,3 +1,3 @@
 Name,DriverName,DriverPath,IP
-Admin Printer,KONICA MINOLTA Universal PCL,.\Drivers\KOAWUJ__.inf,10.10.0.1
-Sales Printer,KONICA MINOLTA Universal PCL,.\Drivers\KOAWUJ__.inf,10.10.0.2
+Admin Printer,KONICA MINOLTA Universal V4 PCL,.\Drivers\KOBxxK__01.inf,10.10.0.1
+Sales Printer,KONICA MINOLTA Universal V4 PCL,.\Drivers\KOBxxK__01.inf,10.10.0.2
