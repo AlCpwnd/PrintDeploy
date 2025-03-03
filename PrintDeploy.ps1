@@ -8,6 +8,14 @@ param(
     [Parameter(Mandatory,ParameterSetName='File')][String]$Path
 )
 
+# Creates a log file in the Windows temp directory.
+$LogPath = "$env:windir\Temp\$((Split-Path $PSCommandPath -Leaf).Replace('.ps1','.log'))"
+$Global:Parameters = @{
+    FilePath = $LogPath
+    Encoding = "utf8"
+    Append = $true
+}
+
 function Add-NetworkPrinter {
     param(
         [Parameter(Mandatory,ParameterSetName='Printer')][String]$Name,
@@ -16,59 +24,51 @@ function Add-NetworkPrinter {
         [Parameter(Mandatory,ParameterSetName='Printer')][String]$IP
     )
 
-    # Creates a log file in the Windows temp directory.
-    $LogPath = "$env:windir\Temp\$((Split-Path $PSCommandPath -Leaf).Replace('.ps1','.log'))"
-    $Parameters = @{
-        FilePath = $LogPath
-        Encoding = "utf8"
-        Append = $true
-    }
-
-    "$(Get-Date -Format 'yyyyMMdd - HH:mm:ss' ) - Start printer install : $Name" | Out-File @Parameters
+    "$(Get-Date -Format 'yyyyMMdd - HH:mm:ss' ) - Start printer install : $Name" | Out-File @Global:Parameters
 
     # Replaces relative paths with fully defined ones.
     if($DriverPath -match '\.\\'){
         $DriverPath = $DriverPath.Replace('.\',"$PSScriptRoot\")
-        "Relative path replaced with literalpath : $DriverPath" | Out-File @Parameters
+        "Relative path replaced with literalpath : $DriverPath" | Out-File @Global:Parameters
     }
 
     # Recovers the driver's name from the INF file.
     if(!$DriverName){
-        "No Driver Name given, recovering it from the INF file." | Out-File @Parameters
+        "No Driver Name given, recovering it from the INF file." | Out-File @Global:Parameters
         $DriverName = (Get-Content -Path $DriverPath | Where-Object{$_ -match "DiskName="}).Replace('"','').Split('=')[1]
-        "DriverName found : $DriverName" | Out-File @Parameters
+        "DriverName found : $DriverName" | Out-File @Global:Parameters
     }
 
-    "Attempting to add printer : $Name" | Out-File @Parameters
+    "Attempting to add printer : $Name" | Out-File @Global:Parameters
 
     # Portconfiguration.
     $IPs = Get-PrinterPort 
     if($IPs.PrinterHostAddress -notcontains $IP){
-        "Port added for : $IP" | Out-File @Parameters
+        "Port added for : $IP" | Out-File @Global:Parameters
         Add-PrinterPort -Name $IP -PrinterHostAddress $IP
         $Port = $IP
     }else{
-        "Port $IP already present" | Out-File @Parameters
+        "Port $IP already present" | Out-File @Global:Parameters
         $Port = $IPs[$IPs.PrinterHostAddress.IndexOf($IP)].Name
     }
 
     # Driverconfiguration.
     $Drivers = Get-PrinterDriver
     if($Drivers.Name -notcontains $DriverName){
-        "Driver added for : $DriverName" | Out-File @Parameters
+        "Driver added for : $DriverName" | Out-File @Global:Parameters
         & pnputil.exe /a $DriverPath
         Add-PrinterDriver $DriverName
     }else{
-        "Driver $DriverName already present" | Out-File @Parameters
+        "Driver $DriverName already present" | Out-File @Global:Parameters
     }
 
     # PrinterConfiguration.
     $Printers = Get-Printer
     if($Printers.Name -notcontains $Name){
-        "Printer $Name has been added" | Out-File @Parameters
+        "Printer $Name has been added" | Out-File @Global:Parameters
         Add-Printer -Name $Name -DriverName $DriverName -PortName $Port
     }else{
-        "Printer $Name is already present" | Out-File @Parameters
+        "Printer $Name is already present" | Out-File @Global:Parameters
     }
     return
 
@@ -120,20 +120,13 @@ switch ($PsCmdlet.ParameterSetName) {
         Add-NetworkPrinter -Name $Name -DriverName $DriverName -DriverPath $DriverPath -IP $IP
     }
     "File" {
-        # Creates a log file in the Windows temp directory.
-        $LogPath = "$env:windir\Temp\$((Split-Path $PSCommandPath -Leaf).Replace('.ps1','.log'))"
-        $Parameters = @{
-            FilePath = $LogPath
-            Encoding = "utf8"
-            Append = $true
-        }
         # Replaces relative paths with fully defined ones.
         if($Path -match '\.\\'){
             $Path = $Path.Replace('.\',"$PSScriptRoot\")
-            "Relative path replaced with literalpath : $Path" | Out-File @Parameters
+            "Relative path replaced with literalpath : $Path" | Out-File @Global:Parameters
         }
         "Recovering printers from config file : $Path"
-        $Printers = Import-Csv -Path $Path | Out-File @Parameters
+        Import-Csv -Path $Path -OutVariable Printers | Out-File @Global:Parameters
         foreach($Printer in $Printers){
             Add-NetworkPrinter -Name $Printer.Name -DriverName $Printer.DriverName -DriverPath $Printer.DriverPath -IP $Printer.IP
         }
