@@ -134,3 +134,27 @@ Accept wildcard characters: false
 - [Get-PrinterDriver](https://learn.microsoft.com/powershell/module/printmanagement/get-printerdriver?view=windowsserver2025-ps&wt.mc_id=ps-gethelp)
 
 - [Get-PrinterPort](https://learn.microsoft.com/powershell/module/printmanagement/get-printerport?view=windowsserver2025-ps&wt.mc_id=ps-gethelp)
+
+---
+
+## Intune Notes
+
+In case you want to use this to deploy printers through Intune, be warned that only the 'single printer' function has been tested for now.
+
+### Settings
+
+#### Program
+
+Install Command: `powershell.exe -ExecutionPolicy Bypass -NoProfile -File PrintDeploy.ps1 -Name "<Printer Name>" -DriverName "<Driver Name>" -DriverPath "<Driver Path>" -IP "<Printer Port>"`
+
+Uninstall Command: `powershell.exe -ExecutionPolicy Bypass -NoProfile -Command "Remove-Printer -Name <Printer Name>"`
+
+#### Detection Rules
+
+Rules format: `Manually condigured detection rules`
+
+Detection rules: 
+
+- Type: `Registry`
+- Key path: `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Printers\<Printer Name>`
+- Detection method: `Key exists`
