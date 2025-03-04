@@ -24,7 +24,7 @@ function Add-NetworkPrinter {
         [Parameter(Mandatory,ParameterSetName='Printer')][String]$IP
     )
 
-    "$(Get-Date -Format 'yyyyMMdd - HH:mm:ss' ) - Start printer install : $Name" | Out-File @Global:Parameters
+    "`n$(Get-Date -Format 'yyyyMMdd - HH:mm:ss' ) - Start printer install : $Name" | Out-File @Global:Parameters
 
     # Replaces relative paths with fully defined ones.
     if($DriverPath -match '\.\\'){
