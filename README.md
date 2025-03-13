@@ -112,7 +112,7 @@ Accept pipeline: false
 Accept wildcard characters: false
 ```
 
-#### -File
+#### -Path
 
 CSV configuration file containing the multiple printers you want to add to the current device.
 
