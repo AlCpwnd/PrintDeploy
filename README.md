@@ -153,7 +153,7 @@ Uninstall Command: `powershell.exe -ExecutionPolicy Bypass -NoProfile -Command "
 
 Rules format: `Manually condigured detection rules`
 
-Detection rules: 
+Detection rules:
 
 - Type: `Registry`
 - Key path: `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Printers\<Printer Name>`
