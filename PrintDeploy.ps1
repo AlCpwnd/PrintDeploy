@@ -2,7 +2,7 @@
 
 param(
     [Parameter(Mandatory,ParameterSetName='Printer')][String]$Name,
-    [Parameter(ParameterSetName='Printer')][String]$DriverName,
+    [Parameter(Mandatory,ParameterSetName='Printer')][String]$DriverName,
     [Parameter(Mandatory,ParameterSetName='Printer')][String]$DriverPath,
     [Parameter(Mandatory,ParameterSetName='Printer')][String]$IP,
     [Parameter(Mandatory,ParameterSetName='File')][String]$Path
@@ -19,7 +19,7 @@ $Global:Parameters = @{
 function Add-NetworkPrinter {
     param(
         [Parameter(Mandatory,ParameterSetName='Printer')][String]$Name,
-        [Parameter(ParameterSetName='Printer')][AllowEmptyString()][String]$DriverName,
+        [Parameter(Mandatory,ParameterSetName='Printer')][String]$DriverName,
         [Parameter(Mandatory,ParameterSetName='Printer')][String]$DriverPath,
         [Parameter(Mandatory,ParameterSetName='Printer')][String]$IP
     )
