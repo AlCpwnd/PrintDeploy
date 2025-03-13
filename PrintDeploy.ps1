@@ -55,8 +55,9 @@ function Add-NetworkPrinter {
     # Driverconfiguration.
     $Drivers = Get-PrinterDriver
     if($Drivers.Name -notcontains $DriverName){
-        "Driver added for : $DriverName" | Out-File @Global:Parameters
-        & pnputil.exe /a $DriverPath
+        "Installing driver : $DriverPath" | Out-File @Global:Parameters
+        Start-Process -FilePath pnputil.exe -ArgumentList "/a $DriverPath" -Wait
+        "Adding driver for : $DriverName" | Out-File @Global:Parameters
         Add-PrinterDriver $DriverName
     }else{
         "Driver $DriverName already present" | Out-File @Global:Parameters
@@ -91,6 +92,7 @@ function Add-NetworkPrinter {
 
         .PARAMETER IP
         IP on which the printer can be found and port that will be configured on the device.
+        If an existing port already has the given IP, it will be used.
 
         .INPUTS
         None. You can't pipe objects to Add-NetworkPrinter.
@@ -154,6 +156,7 @@ switch ($PsCmdlet.ParameterSetName) {
 
     .PARAMETER IP
     IP on which the printer can be found and port that will be configured on the device.
+    If an existing port already has the assigned IP, it will be reused.
 
     .PARAMETER File
     CSV configuration file containing the multiple printers you want to add to the current device.
@@ -166,6 +169,9 @@ switch ($PsCmdlet.ParameterSetName) {
 
     .EXAMPLE
     PS> Add-NetworkPrinter -Name "Admin Printer" -DriverName "KONICA MINOLTA Universal PCL" -DriverPath ".\Drivers\KOAWUJ__.inf" -IP "10.10.0.1"
+
+    .EXAMPLE
+    PS> Add-NetworkPrinter -Path .\Printers.csv
 
     .LINK
     Online version: https://github.com/AlCpwnd/PrintDeploy
