@@ -56,7 +56,7 @@ function Add-NetworkPrinter {
     $Drivers = Get-PrinterDriver
     if($Drivers.Name -notcontains $DriverName){
         "Installing driver : $DriverPath" | Out-File @Global:Parameters
-        Start-Process -FilePath pnputil.exe -ArgumentList "/a $DriverPath" -Wait
+        cmd.exe /C "pnputil.exe /a $DriverPath"
         "Adding driver for : $DriverName" | Out-File @Global:Parameters
         Add-PrinterDriver $DriverName
     }else{
