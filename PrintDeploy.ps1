@@ -127,22 +127,25 @@ function Add-NetworkPrinter {
 
 switch ($PsCmdlet.ParameterSetName) {
     "Printer" {
-        Add-NetworkPrinter -Name $Name -DriverName $DriverName -DriverPath $DriverPath -IP $IP
+        Add-NetworkPrinter -Name $Name -DriverName $DriverName -DriverPath $DriverPath -IP $IP -OutVariable ExitCode
     }
     "File" {
         # Replaces relative paths with fully defined ones.
         if($Path -match '\.\\'){
             $Path = $Path.Replace('.\',"$PSScriptRoot\")
-            "Relative path replaced with literalpath : $Path" | Out-File @Global:Parameters
+            "Relative path replaced with literal path : $Path" | Out-File @Global:Parameters
         }
-        "Recovering printers from config file : $Path"
+        "Recovering printers from config file : $Path" | Out-File @Global:Parameters
         Import-Csv -Path $Path -OutVariable Printers | Out-File @Global:Parameters
-        foreach($Printer in $Printers){
+        $ExitCode = foreach($Printer in $Printers){
             Add-NetworkPrinter -Name $Printer.Name -DriverName $Printer.DriverName -DriverPath $Printer.DriverPath -IP $Printer.IP
         }
     }
 }
 
+if($ExitCode){
+    exit $ExitCode
+}
 
 
 <#
