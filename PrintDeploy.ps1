@@ -56,7 +56,15 @@ function Add-NetworkPrinter {
     $Drivers = Get-PrinterDriver
     if($Drivers.Name -notcontains $DriverName){
         "Installing driver : $DriverPath" | Out-File @Global:Parameters
-        cmd.exe /C "pnputil.exe /a $DriverPath"
+        Start-Process -FilePath "C:\WINDOWS\system32\pnputil.exe" -ArgumentList "/a $DriverPath" -Wait
+        $DriverFile = Split-Path -Path $DriverPath -Leaf
+        $PnpPrinterDrivers = Start-Process -FilePath "C:\Windows\System32\pnputil.exe" -ArgumentList "/enum-drivers /files /class Printer /format CSV" | ConvertFrom-Csv | Where-Object{$_.ClassName -eq 'Printer'}
+        if($PnpPrinterDrivers.originalName -contains $DriverFile){
+            "Driver file $DriverFile not found in repository post installation. Exiting with retry code." | Out-File @Global:Parameters
+            return 1618
+        }else{
+            "Driver file $DriverFile found in repository. Attempting to add it to printer driver repository." | Out-File @Global:Parameters
+        }
         "Adding driver for : $DriverName" | Out-File @Global:Parameters
         Add-PrinterDriver $DriverName
     }else{
