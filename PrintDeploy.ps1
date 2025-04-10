@@ -16,6 +16,41 @@ $Global:Parameters = @{
     Append = $true
 }
 
+function Get-PnpPrinterDriver {
+    param(
+        [Parameter(Mandatory)][String]$DriverFile
+    )
+    $DriverFile = Split-Path -Path $DriverFile -Leaf
+    $PnpPrinterDrivers = C:\Windows\System32\pnputil.exe /enum-drivers /files /class Printer /format CSV | ConvertFrom-Csv | Where-Object{$_.ClassName -eq 'Printer'}
+    if($PnpPrinterDrivers.originalName -contains $DriverFile){
+        return $true
+    }else{
+        return $false
+    }
+
+    <#
+        .SYNOPSIS
+        Checks the driver repository for given file.
+
+        .DESCRIPTION
+        List the installed printer drivers through pnputil.exe and return $true if a driver
+        with the same name can be found.
+
+        .PARAMETER DriverFile
+        Name of the driver file.
+
+        .INPUTS
+        None. You can't pipe objects to Get-PnpPrinterDriver.
+
+        .OUTPUTS
+        None. The script will return a bool confirming if the driver is present on the current machine.
+
+        .EXAMPLE
+        PS> Get-PnpPrinterDriver .\Drivers\KOAWUJ__.inf
+        True
+    #>
+}
+
 function Add-NetworkPrinter {
     param(
         [Parameter(Mandatory,ParameterSetName='Printer')][String]$Name,
@@ -32,13 +67,6 @@ function Add-NetworkPrinter {
         "Relative path replaced with literalpath : $DriverPath" | Out-File @Global:Parameters
     }
 
-    # Recovers the driver's name from the INF file.
-    if(!$DriverName){
-        "No Driver Name given, recovering it from the INF file." | Out-File @Global:Parameters
-        $DriverName = (Get-Content -Path $DriverPath | Where-Object{$_ -match "DiskName="}).Replace('"','').Split('=')[1]
-        "DriverName found : $DriverName" | Out-File @Global:Parameters
-    }
-
     "Attempting to add printer : $Name" | Out-File @Global:Parameters
 
     # Port configuration.
@@ -52,23 +80,26 @@ function Add-NetworkPrinter {
         $Port = $IPs[$IPs.PrinterHostAddress.IndexOf($IP)].Name
     }
 
-    # Driverconfiguration.
-    $Drivers = Get-PrinterDriver
-    if($Drivers.Name -notcontains $DriverName){
-        "Installing driver : $DriverPath" | Out-File @Global:Parameters
-        Start-Process -FilePath "C:\WINDOWS\system32\pnputil.exe" -ArgumentList "/a $DriverPath" -Wait
-        $DriverFile = Split-Path -Path $DriverPath -Leaf
-        $PnpPrinterDrivers = Start-Process -FilePath "C:\Windows\System32\pnputil.exe" -ArgumentList "/enum-drivers /files /class Printer /format CSV" | ConvertFrom-Csv | Where-Object{$_.ClassName -eq 'Printer'}
-        if($PnpPrinterDrivers.originalName -contains $DriverFile){
+    # Driver configuration.
+    if(Get-PnpPrinterDriver $DriverPath){
+        "Driver file `"$DriverPath`" already present in repository." | Out-File @Global:Parameters
+    }else{
+        "Driver file `"$DriverPath`" found in repository.`nAttempting to add it to printer driver repository." | Out-File @Global:Parameters
+        Start-Process -FilePath C:\Windows\System32\pnputil.exe -ArgumentList "/add-driver $DriverPath" -Wait
+        if(Get-PnpPrinterDriver $DriverPath){
+            "Driver successfully installed." | Out-File @Global:Parameters
+        }else{
             "Driver file $DriverFile not found in repository post installation. Exiting with retry code." | Out-File @Global:Parameters
             return 1618
-        }else{
-            "Driver file $DriverFile found in repository. Attempting to add it to printer driver repository." | Out-File @Global:Parameters
         }
-        "Adding driver for : $DriverName" | Out-File @Global:Parameters
-        Add-PrinterDriver $DriverName
-    }else{
-        "Driver $DriverName already present" | Out-File @Global:Parameters
+    }
+
+    $Drivers = Get-PrinterDriver
+    if($Drivers.Name -notcontains $DriverName){
+        Add-PrinterDriver -Name $DriverName
+        "Driver `"$DriverName`" added to the printer driver repository" | Out-File @Global:Parameters
+    }catch{
+        "Driver `"$DriverName`" already present" | Out-File @Global:Parameters
     }
 
     # Printer configuration.
@@ -80,6 +111,7 @@ function Add-NetworkPrinter {
         "Printer $Name is already present" | Out-File @Global:Parameters
     }
     return
+
 
     <#
         .SYNOPSIS
