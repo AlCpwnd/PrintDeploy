@@ -41,7 +41,7 @@ function Add-NetworkPrinter {
 
     "Attempting to add printer : $Name" | Out-File @Global:Parameters
 
-    # Portconfiguration.
+    # Port configuration.
     $IPs = Get-PrinterPort 
     if($IPs.PrinterHostAddress -notcontains $IP){
         "Port added for : $IP" | Out-File @Global:Parameters
@@ -71,7 +71,7 @@ function Add-NetworkPrinter {
         "Driver $DriverName already present" | Out-File @Global:Parameters
     }
 
-    # PrinterConfiguration.
+    # Printer configuration.
     $Printers = Get-Printer
     if($Printers.Name -notcontains $Name){
         "Printer $Name has been added" | Out-File @Global:Parameters
