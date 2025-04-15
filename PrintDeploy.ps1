@@ -18,11 +18,11 @@ $Global:Parameters = @{
 
 function Get-PnpPrinterDriver {
     param(
-        [Parameter(Mandatory)][String]$DriverFile
+        [Parameter(Mandatory)][String]$Driver
     )
-    $DriverFile = Split-Path -Path $DriverFile -Leaf
+    $Driver = Split-Path -Path $Driver -Leaf
     $PnpPrinterDrivers = C:\Windows\System32\pnputil.exe /enum-drivers /files /class Printer /format CSV | ConvertFrom-Csv | Where-Object{$_.ClassName -eq 'Printer'}
-    if($PnpPrinterDrivers.originalName -contains $DriverFile){
+    if($PnpPrinterDrivers.originalName -contains $Driver){
         return $true
     }else{
         return $false
