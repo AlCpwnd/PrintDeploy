@@ -7,7 +7,7 @@ PowerShell script for deploying network printers through script.
 In order to correctly document the name of the driver in the script, you will first need to manually install it on a device and run:
 
 ```ps
-Get-PrinterDriver
+Get-PrinterDriver | ft Manufacturer,Name -AutoSize
 ```
 
 And document the "Name" value of the driver you just added.
