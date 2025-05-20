@@ -16,13 +16,13 @@ $Global:Parameters = @{
     Append = $true
 }
 
-function Get-PnpPrinterDriver {
+function Test-PnpPrinterDriver {
     param(
         [Parameter(Mandatory)][String]$Driver
     )
     $Driver = Split-Path -Path $Driver -Leaf
-    $PnpPrinterDrivers = C:\Windows\System32\pnputil.exe /enum-drivers /files /class Printer /format CSV | ConvertFrom-Csv | Where-Object{$_.ClassName -eq 'Printer'}
-    if($PnpPrinterDrivers.originalName -contains $Driver){
+    $PnpPrinterDrivers = C:\Windows\System32\pnputil.exe /enum-drivers /files /class Printer
+    if($PnpPrinterDrivers | Where-Object{$_ -match $Driver}){
         return $true
     }else{
         return $false
@@ -40,13 +40,13 @@ function Get-PnpPrinterDriver {
         Name of the driver file.
 
         .INPUTS
-        None. You can't pipe objects to Get-PnpPrinterDriver.
+        None. You can't pipe objects to Test-PnpPrinterDriver.
 
         .OUTPUTS
         None. The script will return a bool confirming if the driver is present on the current machine.
 
         .EXAMPLE
-        PS> Get-PnpPrinterDriver .\Drivers\KOAWUJ__.inf
+        PS> Test-PnpPrinterDriver .\Drivers\KOAWUJ__.inf
         True
     #>
 }
@@ -81,12 +81,12 @@ function Add-NetworkPrinter {
     }
 
     # Driver configuration.
-    if(Get-PnpPrinterDriver $DriverPath){
+    if(Test-PnpPrinterDriver $DriverPath){
         "Driver file `"$DriverPath`" already present in repository." | Out-File @Global:Parameters
     }else{
         "Driver file `"$DriverPath`" found in repository.`nAttempting to add it to printer driver repository." | Out-File @Global:Parameters
         Start-Process -FilePath C:\Windows\System32\pnputil.exe -ArgumentList "/add-driver $DriverPath" -Wait
-        if(Get-PnpPrinterDriver $DriverPath){
+        if(Test-PnpPrinterDriver $DriverPath){
             "Driver successfully installed." | Out-File @Global:Parameters
         }else{
             "Driver file $DriverFile not found in repository post installation. Exiting with retry code." | Out-File @Global:Parameters
