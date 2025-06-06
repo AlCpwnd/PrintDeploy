@@ -97,8 +97,8 @@ function Add-NetworkPrinter {
     $Drivers = Get-PrinterDriver
     if($Drivers.Name -notcontains $DriverName){
         Add-PrinterDriver -Name $DriverName
-        "Driver `"$DriverName`" added to the printer driver repository" | Out-File @Global:Parameters
-    }catch{
+        "Driver `"$DriverName`" added to the printer driver repository" | Out-File @Global:Parameters 
+    }else{
         "Driver `"$DriverName`" already present" | Out-File @Global:Parameters
     }
 
