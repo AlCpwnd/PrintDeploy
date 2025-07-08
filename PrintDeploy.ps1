@@ -21,7 +21,8 @@ function Test-PnpPrinterDriver {
         [Parameter(Mandatory)][String]$Driver
     )
     $Driver = Split-Path -Path $Driver -Leaf
-    $PnpPrinterDrivers = C:\Windows\System32\pnputil.exe /enum-drivers /files /class Printer
+    $PnpPrinterDrivers = & "c:\windows\sysnative\pnputil.exe" /enum-drivers
+    # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
     if($PnpPrinterDrivers | Where-Object{$_ -match $Driver}){
         return $true
     }else{
@@ -85,7 +86,7 @@ function Add-NetworkPrinter {
         "Driver file `"$DriverPath`" already present in repository." | Out-File @Global:Parameters
     }else{
         "Driver file `"$DriverPath`" found in repository.`nAttempting to add it to printer driver repository." | Out-File @Global:Parameters
-        Start-Process -FilePath C:\Windows\System32\pnputil.exe -ArgumentList "/add-driver $DriverPath" -Wait
+        Start-Process -FilePath "c:\windows\sysnative\pnputil.exe" -ArgumentList "/add-driver $DriverPath" -Wait
         if(Test-PnpPrinterDriver $DriverPath){
             "Driver successfully installed." | Out-File @Global:Parameters
         }else{
