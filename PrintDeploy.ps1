@@ -85,7 +85,7 @@ function Add-NetworkPrinter {
     if(Test-PnpPrinterDriver $DriverPath){
         "Driver file `"$DriverPath`" already present in repository." | Out-File @Global:Parameters
     }else{
-        "Driver file `"$DriverPath`" found in repository.`nAttempting to add it to printer driver repository." | Out-File @Global:Parameters
+        "Driver file `"$DriverPath`" not found in repository.`nAttempting to add it to printer driver repository." | Out-File @Global:Parameters
         Start-Process -FilePath "c:\windows\sysnative\pnputil.exe" -ArgumentList "/add-driver $DriverPath" -Wait
         if(Test-PnpPrinterDriver $DriverPath){
             "Driver successfully installed." | Out-File @Global:Parameters
