@@ -202,7 +202,7 @@ if($ExitCode){
     IP on which the printer can be found and port that will be configured on the device.
     If an existing port already has the assigned IP, it will be reused.
 
-    .PARAMETER File
+    .PARAMETER Path
     CSV configuration file containing the multiple printers you want to add to the current device.
 
     .INPUTS
@@ -228,4 +228,7 @@ if($ExitCode){
 
     .LINK
     Get-PrinterPort
+
+    .LINK
+    pnputil.exe
 #>
