@@ -1,145 +1,35 @@
 # PrintDeploy
 
-PowerShell script for deploying network printers through script.
+> :warning: The script uses a pathing to `pnputil.exe` which won't be recognized if ran manually.
 
-## Preperation
+PowerShell script for deploying network printers through Intune without having a print server.  
+Information regarding the use of the script can be found by running the 
 
-In order to correctly document the name of the driver in the script, you will first need to manually install it on a device and run:
+## Requirements
+
+In order to correctly complete the installation command, you will need the driver name.  
+You van find it either by reading the `.INF` file, or by first manually installing the printer and running the following command:
 
 ```ps
 Get-PrinterDriver | ft Manufacturer,Name -AutoSize
 ```
 
-And document the "Name" value of the driver you just added.
+The `Name` of the recently installed driver is what you're looking for.
 
 ---
 
-## Printers.csv
+## Script Documentation
 
-CSV file containing the configuration of multiple printers.
-The file need to have the following headers in order to work:
+Detailed information on the working of the various script can be found in the [Documentation](./Documentation/) folder:
 
-- Name
-- DriverName
-- DriverPath
-- IP
-
-## PrintDeploy.ps1
-
-### Synopsis
-
-Adds a network printer to the current computer.
-
-### Syntax
-
-```txt
-PrintDeploy.ps1 -Name <String> -DriverName <String> -DriverPath <String> -IP <String> [<CommonParameters>]
-PrintDeploy.ps1 -Path <String> [<CommonParameters>]
-```
-
-### Description
-
-Verifies if the required port and drivers are present on the device before
-trying to add the requested printer to the device.
-
-### Examples
-
-#### Example 1
-
-```ps
-Add-NetworkPrinter -Name "Admin Printer" -DriverName "KONICA MINOLTA Universal PCL" -DriverPath ".\Drivers\KOAWUJ__.inf" -IP "10.10.0.1"
-```
-
-### Parameters
-
-#### -Name
-
-Name given to the printer.
-
-```txt
-Type: String
-Parameter Sets: Printer
-
-Required: true
-Position: named
-Default value: None
-Accept pipeline: false
-Accept wildcard characters: false
-```
-
-#### -DriverName
-
-Name of the driver.
-
-```txt
-Type: String
-Parameter Sets: Printer
-
-Required: true
-Position: named
-Default value: None
-Accept pipeline: false
-Accept wildcard characters: false
-```
-
-#### -DriverPath
-
-Path to the INF file to install the driver.
-
-```txt
-Type: String
-Parameter Sets: Printer
-
-Required: true
-Position: named
-Default value: None
-Accept pipeline: false
-Accept wildcard characters: false
-```
-
-#### -IP
-
-IP on which the printer can be found and port that will be configured on the device.
-
-```txt
-Type: String
-Parameter Sets: Printer
-
-Required: true
-Position: named
-Default value: None
-Accept pipeline: false
-Accept wildcard characters: false
-```
-
-#### -Path
-
-CSV configuration file containing the multiple printers you want to add to the current device.
-
-```txt
-Type: String
-Parameter Sets: File
-
-Required: true
-Position: named
-Default value: None
-Accept pipeline: false
-Accept wildcard characters: false
-```
-
-### Related Links
-
-- [Get-Printer](https://learn.microsoft.com/powershell/module/printmanagement/get-printer?view=windowsserver2025-ps&wt.mc_id=ps-gethelp)
-
-- [Get-PrinterDriver](https://learn.microsoft.com/powershell/module/printmanagement/get-printerdriver?view=windowsserver2025-ps&wt.mc_id=ps-gethelp)
-
-- [Get-PrinterPort](https://learn.microsoft.com/powershell/module/printmanagement/get-printerport?view=windowsserver2025-ps&wt.mc_id=ps-gethelp)
+- [PrintDeploy.ps1](./Documentation/PrintDeploy.md)
+- [Detect.ps1](./Documentation/Detect.md)
 
 ---
 
-## Intune Notes
+## Intune Configuration
 
-In case you want to use this to deploy printers through Intune, be warned that only the 'single printer' function has been tested for now.
+:warning: In case you want to use this to deploy printers through Intune, be warned that only the 'single printer' function has been tested for now.
 
 ### Settings
 
@@ -151,6 +41,12 @@ Uninstall Command: `powershell.exe -ExecutionPolicy Bypass -NoProfile -Command "
 
 #### Detection Rules
 
+Choose one of the following options for detecting the printer installation.
+
+##### Registry Detection
+
+> This will only work after a reboot of the device.
+
 Rules format: `Manually condigured detection rules`
 
 Detection rules:
@@ -158,3 +54,7 @@ Detection rules:
 - Type: `Registry`
 - Key path: `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Print\Printers\<Printer Name>`
 - Detection method: `Key exists`
+
+##### Custom Script
+
+Update the [Detect.ps1](./Detect.ps1) for it to correspond to the printer name you want to deploy, and upload it to the portal.
