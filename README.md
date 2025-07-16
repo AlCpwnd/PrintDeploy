@@ -1,4 +1,4 @@
-# PrintDeploy
+# :printer: PrintDeploy
 
 > :warning: The script uses a pathing to `pnputil.exe` which won't be recognized if ran manually.
 
@@ -18,7 +18,7 @@ The `Name` of the recently installed driver is what you're looking for.
 
 ---
 
-## Script Documentation
+## :book: Script Documentation
 
 Detailed information on the working of the various script can be found in the [Documentation](./Documentation/) folder:
 
@@ -27,7 +27,7 @@ Detailed information on the working of the various script can be found in the [D
 
 ---
 
-## Intune Configuration
+## :wrench: Intune Configuration
 
 :warning: In case you want to use this to deploy printers through Intune, be warned that only the 'single printer' function has been tested for now.
 
@@ -47,7 +47,7 @@ Choose one of the following options for detecting the printer installation.
 
 > This will only work after a reboot of the device.
 
-Rules format: `Manually condigured detection rules`
+Rules format: `Manually configured detection rules`
 
 Detection rules:
 
