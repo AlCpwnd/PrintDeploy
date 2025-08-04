@@ -1,7 +1,5 @@
 # :printer: PrintDeploy
 
-> :warning: The script uses a pathing to `pnputil.exe` which won't be recognized if ran manually.
-
 PowerShell script for deploying network printers through Intune without having a print server.  
 Information regarding the use of the script can be found by running the [Documentation](./Documentation/) folder.
 
