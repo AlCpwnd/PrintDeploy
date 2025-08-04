@@ -21,8 +21,13 @@ function Test-PnpPrinterDriver {
         [Parameter(Mandatory)][String]$Driver
     )
     $Driver = Split-Path -Path $Driver -Leaf
-    $PnpPrinterDrivers = & "c:\windows\sysnative\pnputil.exe" /enum-drivers
-    # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
+    if([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM"){
+        $pnputilPath = "C:\Windows\sysnative\pnputil.exe"
+        # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
+    }else{
+        $pnputilPath = "C:\Windows\System32\pnputil.exe"
+    }
+    $PnpPrinterDrivers = & $pnputilPath /enum-drivers
     if($PnpPrinterDrivers | Where-Object{$_ -match $Driver}){
         return $true
     }else{
@@ -85,8 +90,14 @@ function Add-NetworkPrinter {
     if(Test-PnpPrinterDriver $DriverPath){
         "Driver file `"$DriverPath`" already present in repository." | Out-File @Global:Parameters
     }else{
+        if([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM"){
+            $pnputilPath = "C:\Windows\sysnative\pnputil.exe"
+            # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
+        }else{
+            $pnputilPath = "C:\Windows\System32\pnputil.exe"
+        }
         "Driver file `"$DriverPath`" not found in repository.`nAttempting to add it to printer driver repository." | Out-File @Global:Parameters
-        Start-Process -FilePath "c:\windows\sysnative\pnputil.exe" -ArgumentList "/add-driver $DriverPath" -Wait
+        Start-Process -FilePath $pnputilPath -ArgumentList "/add-driver $DriverPath" -Wait
         if(Test-PnpPrinterDriver $DriverPath){
             "Driver successfully installed." | Out-File @Global:Parameters
         }else{
