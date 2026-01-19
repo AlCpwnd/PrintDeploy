@@ -220,7 +220,7 @@ if ($ExitCode) {
     .DESCRIPTION
     Verifies if the required port and drivers are present on the device before
     trying to add the requested printer to the device.
-    
+
     .INPUTS
     None. You can't pipe objects to Add-NetworkPrinter.
 
