@@ -13,7 +13,7 @@ param(
             throw "Invalid file format. Please only use '.dat' files."
         }
     })]
-    # Configuration file you want to apply to the printer.
+    # Name to give to the exported file.
     [System.IO.FileInfo]$ConfigFile
 )
 begin{
