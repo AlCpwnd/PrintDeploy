@@ -11,7 +11,7 @@ param(
 
     [Parameter(Mandatory = $true, ParameterSetName = 'Printer')]
     # Path to the INF file to install the driver.
-    [String]$DriverPath,
+    [System.IO.FileInfo]$DriverPath,
 
     [Parameter(Mandatory = $true, ParameterSetName = 'Printer')]
     # IP on which the printer can be found and port that will be configured on the device.
@@ -20,7 +20,7 @@ param(
 
     [Parameter(Mandatory = $true, ParameterSetName = 'File')]
     # File containing the configuration for deploying multiple printers at once.
-    [String]$Path
+    [System.IO.FileInfo]$Path
 )
 
 # Creates a log file in the Windows temp directory.
@@ -85,7 +85,7 @@ function Add-NetworkPrinter {
 
         [Parameter(Mandatory = $true)]
         # Path to the INF file to install the driver.
-        [String]$DriverPath,
+        [System.IO.FileInfo]$DriverPath,
 
         [Parameter(Mandatory = $true)]
         # IP on which the printer can be found and port that will be configured on the device.
