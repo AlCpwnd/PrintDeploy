@@ -1,7 +1,7 @@
 #Requires -Modules PrintManagement -RunAsAdministrator
 
 param(
-    [Parameter(Mandatory=$true,ValueFromPipeline,ValueFromPipelineByPropertyName)]
+    [Parameter(Mandatory = $true, ValueFromPipeline, ValueFromPipelineByPropertyName)]
     # Name of the printer.
     [System.String]$Name,
 
@@ -10,39 +10,43 @@ param(
     # Configuration file you want to apply to the printer. If none are given, the script will look for a dat-file matching the printer name.
     [System.IO.FileInfo]$ConfigFile
 )
-begin{
+begin {
     if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM") {
         $system32Path = "C:\Windows\sysnative"
         # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
-    }else {
+    }
+    else {
         $system32Path = "C:\Windows\System32"
     }
     
     $runDllPath = $system32Path + "\rundll32.exe"
     $dllPath = $system32Path + "\printui.dll"
 }
-process{
-    try{
+process {
+    try {
         Write-Verbose "Checking local printer for: $Name"
         Get-Printer -Name $Name -ErrorAction Stop | Out-Null
-    }catch{
+    }
+    catch {
         Write-Host "Could not find a corresponding printer: $Name" -ForegroundColor Red
         return 1
     }
-    if($ConfigFile){
-        if($ConfigFile -match '\.\'){
+    if ($ConfigFile) {
+        if ($ConfigFile -match '\.\') {
             $ConfigFile = $ConfigFile -replace '\.\', "$PSScriptRoot\"
             Write-Verbose "Cleaned up ConfigGile path to: $ConfigFile"
         }
-    }else{
+    }
+    else {
         Write-Verbose "No configuration file given. Searching for corresponding file."
-        $ConfigFile = (Get-ChildItem -Path $PSScriptRoot -Filter *.dat | Where-Object{$_.Name -match $Name}).FullName
+        $ConfigFile = (Get-ChildItem -Path $PSScriptRoot -Filter *.dat | Where-Object { $_.Name -match $Name }).FullName
 
     }
-    if($ConfigFile){
+    if ($ConfigFile) {
         Write-Verbose "Corresponding file found: $($ConfigFile.Name)"
         Start-Process -FilePath $runDllPath -ArgumentList "$dllPath,PrintUIEntry /Sr /n `"$Name`" /a `"$($ConfigFile.FullName)`" c d g u r p H" -Wait
-    }else{
+    }
+    else {
         Write-Verbose "No matching config file found in the directory."
         return 1
     }
