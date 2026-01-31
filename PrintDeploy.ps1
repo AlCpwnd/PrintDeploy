@@ -237,8 +237,8 @@ if ($ExitCode) {
     Adds a network printer to the current computer.
 
     .DESCRIPTION
-    Verifies if the required port and drivers are present on the device before
-    trying to add the requested printer to the device.
+    Verifies if the required port and drivers are present on the device before trying to add the requested printer to the device.
+    If a printing configuration file is referenced, the script will attempt to apply it to the printer.
 
     .INPUTS
     None. You can't pipe objects to Add-NetworkPrinter.
