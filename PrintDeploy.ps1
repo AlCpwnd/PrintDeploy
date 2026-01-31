@@ -18,10 +18,6 @@ param(
     # If an existing port already has the given IP, it will be used.
     [String]$IP,
 
-    [Parameter(ParameterSetName = 'Printer')]
-    # File containing the printing preferences to apply to the printer.
-    [System.IO.FileInfo]$PrintingSettings,
-
     [Parameter(Mandatory = $true, ParameterSetName = 'File')]
     # File containing the configuration for deploying multiple printers at once.
     [System.IO.FileInfo]$Path
@@ -77,57 +73,6 @@ function Test-PnpPrinterDriver {
     #>
 }
 
-function Import-PrintingSettings {
-    param(
-        [Parameter(Mandatory = $true)]
-        # Name of the printer.
-        [System.String]$Name,
-
-        [Parameter(Mandatory = $true)]
-        # Configuration file you want to apply to the printer.
-        [System.IO.FileInfo]$ConfigFile
-    )
-
-    if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM") {
-        $system32Path = "C:\Windows\sysnative"
-        # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
-    }
-    else {
-        $system32Path = "C:\Windows\System32"
-    }
-    
-    $runDllPath = $system32Path + "\rundll32.exe"
-    $dllPath = $system32Path + "\printui.dll"
-
-    if ($ConfigFile) {
-        if ($ConfigFile -match '\.\') {
-            $ConfigFile = $ConfigFile -replace '\.\', "$PSScriptRoot\"
-            "Cleaned up ConfigGile path to: $ConfigFile" | Out-File @Global:Parameters
-        }
-    }
-
-    "Attempting to apply dat file: $($ConfigFile.Name)" | Out-File @Global:Parameters
-    Start-Process -FilePath $runDllPath -ArgumentList "$dllPath,PrintUIEntry /Sr /n `"$Name`" /a `"$($ConfigFile.FullName)`" c d g u r p H" -Wait
-
-
-    <#
-        .SYNOPSIS
-        Applies printing preferences to the chosen printer.
-
-        .DESCRIPTION
-        Applies a given dat-file to a printer, updating the printing preferences accordingly.
-
-        .INPUTS
-        None.
-
-        .OUTPUTS
-        None. 
-
-        .EXAMPLE
-        PS> .\ImportPrinterSettings.ps1 -Name Printer01 -ConfigFile .\Printer01.dat
-    #>
-}
-
 function Add-NetworkPrinter {
     param(
         [Parameter(Mandatory = $true)]
@@ -145,11 +90,7 @@ function Add-NetworkPrinter {
         [Parameter(Mandatory = $true)]
         # IP on which the printer can be found and port that will be configured on the device.
         # If an existing port already has the given IP, it will be used.
-        [String]$IP,
-
-        [Parameter()]
-        # Path to the dat-file containing the printing settings.
-        [System.IO.FileInfo]$PrintingSettings
+        [String]$IP
     )
 
     "`n$(Get-Date -Format 'yyyyMMdd - HH:mm:ss') - Start printer install : $Name" | Out-File @Global:Parameters
@@ -215,10 +156,7 @@ function Add-NetworkPrinter {
     else {
         "Printer $Name is already present" | Out-File @Global:Parameters
     }
-    
-    if ($PrintingSettings) {
-        Import-PrintingSettings -Name $Name -ConfigFile $PrintingSettings
-    }
+    return
 
 
     <#
@@ -226,8 +164,8 @@ function Add-NetworkPrinter {
         Adds a network printer to the current computer.
 
         .DESCRIPTION
-        Verifies if the required port and drivers are present on the device before trying to add the requested printer to the device.
-        If requested the given printing settings will be applied to the configured printer.
+        Verifies if the required port and drivers are present on the device before
+        trying to add the requested printer to the device.
 
         .INPUTS
         None. You can't pipe objects to Add-NetworkPrinter.
@@ -236,7 +174,7 @@ function Add-NetworkPrinter {
         The script will create a log file in the script's current directory named after the script.
 
         .EXAMPLE
-        PS> Add-NetworkPrinter -Name "Admin Printer" -DriverName "KONICA MINOLTA Universal PCL" -DriverPath ".\Drivers\KOAWUJ__.inf" -IP "10.10.0.1"
+        PS> Add-NetworkPrinter -Name "Admin Printer" -DriverName "KONICA MINOLTA Universal PCL" -DriverPath ".\Drivers\KOAWUJ__.inf" -IP "10.10.0.1" -PrinterSettings ".\Admin_color.dat"
 
         .LINK
         Online version: https://github.com/AlCpwnd/PrintDeploy
@@ -276,14 +214,13 @@ switch ($PsCmdlet.ParameterSetName) {
         Import-Csv -Path $Path -OutVariable Printers | Out-File @Global:Parameters
         $ExitCode = foreach ($Printer in $Printers) {
             $params = @{
-                Name        = $Printer.Name
-                DriverName  = $Printer.DriverName
-                DriverPath  = $Printer.DriverPath
-                IP          = $Printer.IP
-                OutVariable = 'ExitCode'
+                Name        = $Name
+                DriverName  = $DriverName
+                DriverPath  = $DriverPath
+                IP          = $IP
             }
-            if ($Printer.PrintingSettings) {
-                $params['PrintingSettings'] = $Printer.PrintingSettings
+            if ($PrintingSettings) {
+                $params['PrintingSettings'] = $PrintingSettings
             }
             Add-NetworkPrinter @params
         }
@@ -310,7 +247,7 @@ if ($ExitCode) {
     The script will create a log file in the current 
 
     .EXAMPLE
-    PS> Add-NetworkPrinter -Name "Admin Printer" -DriverName "KONICA MINOLTA Universal PCL" -DriverPath ".\Drivers\KOAWUJ__.inf" -IP "10.10.0.1" -PrintingSettings ".\PrintConfiguration.dat"
+    PS> Add-NetworkPrinter -Name "Admin Printer" -DriverName "KONICA MINOLTA Universal PCL" -DriverPath ".\Drivers\KOAWUJ__.inf" -IP "10.10.0.1" -PrinterSettings ".\KonicaAdmin_color.dat"
 
     .EXAMPLE
     PS> Add-NetworkPrinter -Path .\Printers.csv
