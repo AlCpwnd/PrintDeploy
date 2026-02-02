@@ -22,6 +22,8 @@ Detailed information on the working of the various script can be found in the [D
 
 - [PrintDeploy.ps1](./Documentation/PrintDeploy.md)
 - [Detect.ps1](./Documentation/Detect.md)
+- [ExportPrinterSettings.ps1](./Documentation/ExportPrinterSettings.md)
+- [ImportPrinterSettings.ps1](./Documentation/ImportPrinterSettings.md)
 
 ---
 
@@ -31,9 +33,19 @@ Detailed information on the working of the various script can be found in the [D
 
 ### Settings
 
+:information_source: If you plan on deploying custom printing settings with the printer, you will need to:
+
+1. Install the printer on a device (with the same drivers)
+2. Configure your printing settings on said printer as required
+3. Export that configuration in a dat-file using the [ExportPrinterSettings.ps1](./ExportPrinterSettings.ps1)
+
+Once exported, you can add and reference that dat-file in your installation command.
+
+If you only with to apply configuration files to existing printers, you can use the [ImportPrinterSettings.ps1](./ImportPrinterSettings.ps1) script in a separate package.
+
 #### Program
 
-Install Command: `powershell.exe -ExecutionPolicy Bypass -NoProfile -File PrintDeploy.ps1 -Name "<Printer Name>" -DriverName "<Driver Name>" -DriverPath "<Driver Path>" -IP "<Printer Port>"`
+Install Command: `powershell.exe -ExecutionPolicy Bypass -NoProfile -File PrintDeploy.ps1 -Name "<Printer Name>" -DriverName "<Driver Name>" -DriverPath "<Driver Path>" -IP "<Printer Port>" [-PrinterSettings <FileInfo>]`
 
 Uninstall Command: `powershell.exe -ExecutionPolicy Bypass -NoProfile -Command "Remove-Printer -Name <Printer Name>"`
 
