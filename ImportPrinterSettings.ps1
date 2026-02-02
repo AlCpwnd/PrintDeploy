@@ -32,8 +32,8 @@ process {
         return 1
     }
     if ($ConfigFile) {
-        if ($ConfigFile -match '\.\') {
-            $ConfigFile = $ConfigFile -replace '\.\', "$PSScriptRoot\"
+        if ($ConfigFile -match '\.\\') {
+            $ConfigFile = $ConfigFile -replace '\.\\', "$PSScriptRoot\"
             Write-Verbose "Cleaned up ConfigGile path to: $ConfigFile"
         }
     }
