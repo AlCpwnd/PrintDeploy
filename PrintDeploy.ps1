@@ -18,6 +18,10 @@ param(
     # If an existing port already has the given IP, it will be used.
     [String]$IP,
 
+    [Parameter()]
+    # Printing configuration file you want to apply to the newly installed printer.
+    [System.IO.FileInfo]$PrinterSettings,
+
     [Parameter(Mandatory = $true, ParameterSetName = 'File')]
     # File containing the configuration for deploying multiple printers at once.
     [System.IO.FileInfo]$Path
@@ -258,8 +262,8 @@ switch ($PsCmdlet.ParameterSetName) {
                 DriverPath  = $DriverPath
                 IP          = $IP
             }
-            if ($PrintingSettings) {
-                $params['PrintingSettings'] = $PrintingSettings
+            if ($PrinterSettings) {
+                $params['PrinterSettings'] = $PrinterSettings
             }
             Add-NetworkPrinter @params
         }
