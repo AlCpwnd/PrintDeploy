@@ -73,6 +73,36 @@ function Test-PnpPrinterDriver {
     #>
 }
 
+function Add-PrinterSettings {
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        # Name of the printer.
+        [System.String]$Name,
+
+        [Parameter()]
+        # Configuration file you want to apply to the printer.
+        [System.IO.FileInfo]$ConfigFile
+    )
+    if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM") {
+        $system32Path = "C:\Windows\sysnative"
+        # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
+    }
+    else {
+        $system32Path = "C:\Windows\System32"
+    }
+    
+    $runDllPath = $system32Path + "\rundll32.exe"
+    $dllPath = $system32Path + "\printui.dll"
+
+    if ($ConfigFile -match '\.\\') {
+        $ConfigFile = $ConfigFile -replace '\.\\', "$PSScriptRoot\"
+        "Cleaned up ConfigGile path to: $ConfigFile" | Out-File @Global:Parameters
+    }
+
+    "Corresponding file found: $($ConfigFile.Name)" | Out-File @Global:Parameters
+    Start-Process -FilePath $runDllPath -ArgumentList "$dllPath,PrintUIEntry /Sr /n `"$Name`" /a `"$($ConfigFile.FullName)`" c d g u r p H" -Wait
+}
+
 function Add-NetworkPrinter {
     param(
         [Parameter(Mandatory = $true)]
@@ -90,7 +120,11 @@ function Add-NetworkPrinter {
         [Parameter(Mandatory = $true)]
         # IP on which the printer can be found and port that will be configured on the device.
         # If an existing port already has the given IP, it will be used.
-        [String]$IP
+        [String]$IP,
+
+        [Parameter()]
+        # Printing configuration file you want to apply to the newly installed printer.
+        [System.IO.FileInfo]$PrinterSettings
     )
 
     "`n$(Get-Date -Format 'yyyyMMdd - HH:mm:ss') - Start printer install : $Name" | Out-File @Global:Parameters
@@ -156,6 +190,11 @@ function Add-NetworkPrinter {
     else {
         "Printer $Name is already present" | Out-File @Global:Parameters
     }
+
+    if($PrinterSettings){
+        Add-PrinterSettings -Name $Name -ConfigFile $PrinterSettings
+    }
+
     return
 
 
