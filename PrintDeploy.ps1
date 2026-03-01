@@ -196,6 +196,7 @@ function Add-NetworkPrinter {
     }
 
     if($PrinterSettings){
+        "Applying printer settings: $PinterSettings" | Out-File @Global:Parameters
         Add-PrinterSettings -Name $Name -ConfigFile $PrinterSettings
     }
 
@@ -242,8 +243,8 @@ switch ($PsCmdlet.ParameterSetName) {
             IP          = $IP
             OutVariable = 'ExitCode'
         }
-        if ($PrintingSettings) {
-            $params['PrintingSettings'] = $PrintingSettings
+        if ($PrinterSettings) {
+            $params['PrinterSettings'] = $PrinterSettings
         }
         Add-NetworkPrinter @params
     }
