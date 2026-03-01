@@ -135,7 +135,7 @@ function Add-NetworkPrinter {
 
     # Replaces relative paths with fully defined ones.
     if ($DriverPath -match '\.\\') {
-        $DriverPath = $DriverPath.Replace('.\', "$PSScriptRoot\")
+        $DriverPath = $DriverPath -replace '\.\\', "$PSScriptRoot\"
         "Relative path replaced with literal path : $DriverPath" | Out-File @Global:Parameters
     }
 
