@@ -100,10 +100,10 @@ function Add-PrinterSettings {
 
     if ($ConfigFile -match '\.\\') {
         $ConfigFile = $ConfigFile -replace '\.\\', "$PSScriptRoot\"
-        "Cleaned up ConfigGile path to: $ConfigFile" | Out-File @Global:Parameters
+        "Cleaned up Config file path to: $ConfigFile" | Out-File @Global:Parameters
     }
-
-    "Corresponding file found: $($ConfigFile.Name)" | Out-File @Global:Parameters
+    
+    "Importing printing preferences: $($ConfigFile.Name)" | Out-File @Global:Parameters
     Start-Process -FilePath $runDllPath -ArgumentList "$dllPath,PrintUIEntry /Sr /n `"$Name`" /a `"$($ConfigFile.FullName)`" c d g u r p H" -Wait
 }
 
