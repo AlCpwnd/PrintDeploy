@@ -195,7 +195,7 @@ function Add-NetworkPrinter {
         "Printer $Name is already present" | Out-File @Global:Parameters
     }
 
-    if($PrinterSettings){
+    if ($PrinterSettings) {
         "Applying printer settings: $PrinterSettings" | Out-File @Global:Parameters
         Add-PrinterSettings -Name $Name -ConfigFile $PrinterSettings
     }
@@ -248,10 +248,10 @@ switch ($PsCmdlet.ParameterSetName) {
         Import-Csv -Path $Path -OutVariable Printers | Out-File @Global:Parameters
         $ExitCode = foreach ($Printer in $Printers) {
             $params = @{
-                Name        = $Name
-                DriverName  = $DriverName
-                DriverPath  = $DriverPath
-                IP          = $IP
+                Name       = $Name
+                DriverName = $DriverName
+                DriverPath = $DriverPath
+                IP         = $IP
             }
             if ($Printer.PrinterSettings) {
                 $params['PrinterSettings'] = $PrinterSettings
