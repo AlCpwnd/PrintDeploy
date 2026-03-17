@@ -236,17 +236,7 @@ function Add-NetworkPrinter {
 
 switch ($PsCmdlet.ParameterSetName) {
     "Printer" {
-        $params = @{
-            Name        = $Name
-            DriverName  = $DriverName
-            DriverPath  = $DriverPath
-            IP          = $IP
-            OutVariable = 'ExitCode'
-        }
-        if ($PrinterSettings) {
-            $params['PrinterSettings'] = $PrinterSettings
-        }
-        Add-NetworkPrinter @params
+        Write-Host Add-NetworkPrinter @PSBoundParameters
     }
     "File" {
         # Replaces relative paths with fully defined ones.
