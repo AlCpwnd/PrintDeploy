@@ -253,7 +253,7 @@ switch ($PsCmdlet.ParameterSetName) {
                 DriverPath  = $DriverPath
                 IP          = $IP
             }
-            if ($PrinterSettings) {
+            if ($Printer.PrinterSettings) {
                 $params['PrinterSettings'] = $PrinterSettings
             }
             Add-NetworkPrinter @params
