@@ -196,7 +196,7 @@ function Add-NetworkPrinter {
     }
 
     if($PrinterSettings){
-        "Applying printer settings: $PinterSettings" | Out-File @Global:Parameters
+        "Applying printer settings: $PrinterSettings" | Out-File @Global:Parameters
         Add-PrinterSettings -Name $Name -ConfigFile $PrinterSettings
     }
 
