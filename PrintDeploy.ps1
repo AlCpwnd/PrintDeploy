@@ -1,11 +1,30 @@
 #Requires -Modules PrintManagement -RunAsAdministrator 
 
 param(
-    [Parameter(Mandatory,ParameterSetName='Printer')][String]$Name,
-    [Parameter(Mandatory,ParameterSetName='Printer')][String]$DriverName,
-    [Parameter(Mandatory,ParameterSetName='Printer')][String]$DriverPath,
-    [Parameter(Mandatory,ParameterSetName='Printer')][String]$IP,
-    [Parameter(Mandatory,ParameterSetName='File')][String]$Path
+    [Parameter(Mandatory = $true, ParameterSetName = 'Printer')]
+    # Name given to the printer.
+    [String]$Name,
+
+    [Parameter(Mandatory = $true, ParameterSetName = 'Printer')]
+    # Name of the driver.
+    [String]$DriverName,
+
+    [Parameter(Mandatory = $true, ParameterSetName = 'Printer')]
+    # Path to the INF file to install the driver.
+    [System.IO.FileInfo]$DriverPath,
+
+    [Parameter(Mandatory = $true, ParameterSetName = 'Printer')]
+    # IP on which the printer can be found and port that will be configured on the device.
+    # If an existing port already has the given IP, it will be used.
+    [String]$IP,
+
+    [Parameter()]
+    # Printing configuration file you want to apply to the newly installed printer.
+    [System.IO.FileInfo]$PrinterSettings,
+
+    [Parameter(Mandatory = $true, ParameterSetName = 'File')]
+    # File containing the configuration for deploying multiple printers at once.
+    [System.IO.FileInfo]$Path
 )
 
 # Creates a log file in the Windows temp directory.
@@ -13,24 +32,28 @@ $LogPath = "$env:windir\Temp\$((Split-Path $PSCommandPath -Leaf).Replace('.ps1',
 $Global:Parameters = @{
     FilePath = $LogPath
     Encoding = "utf8"
-    Append = $true
+    Append   = $true
 }
 
 function Test-PnpPrinterDriver {
     param(
-        [Parameter(Mandatory)][String]$Driver
+        [Parameter(Mandatory = $true)]
+        # Name of the driver file.
+        [String]$Driver
     )
     $Driver = Split-Path -Path $Driver -Leaf
-    if([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM"){
+    if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM") {
         $pnputilPath = "C:\Windows\sysnative\pnputil.exe"
         # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
-    }else{
+    }
+    else {
         $pnputilPath = "C:\Windows\System32\pnputil.exe"
     }
     $PnpPrinterDrivers = & $pnputilPath /enum-drivers
-    if($PnpPrinterDrivers | Where-Object{$_ -match $Driver}){
+    if ($PnpPrinterDrivers | Where-Object { $_ -match $Driver }) {
         return $true
-    }else{
+    }
+    else {
         return $false
     }
 
@@ -40,10 +63,7 @@ function Test-PnpPrinterDriver {
 
         .DESCRIPTION
         List the installed printer drivers through pnputil.exe and return $true if a driver
-        with the same name can be found.
-
-        .PARAMETER DriverFile
-        Name of the driver file.
+        with the same name can be found.        
 
         .INPUTS
         None. You can't pipe objects to Test-PnpPrinterDriver.
@@ -57,19 +77,65 @@ function Test-PnpPrinterDriver {
     #>
 }
 
+function Add-PrinterSettings {
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        # Name of the printer.
+        [System.String]$Name,
+
+        [Parameter()]
+        # Configuration file you want to apply to the printer.
+        [System.IO.FileInfo]$ConfigFile
+    )
+    if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM") {
+        $system32Path = "C:\Windows\sysnative"
+        # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
+    }
+    else {
+        $system32Path = "C:\Windows\System32"
+    }
+    
+    $runDllPath = $system32Path + "\rundll32.exe"
+    $dllPath = $system32Path + "\printui.dll"
+
+    if ($ConfigFile -match '\.\\') {
+        $ConfigFile = $ConfigFile -replace '\.\\', "$PSScriptRoot\"
+        "Cleaned up Config file path to: $ConfigFile" | Out-File @Global:Parameters
+    }
+    
+    "Importing printing preferences: $($ConfigFile.Name)" | Out-File @Global:Parameters
+    Start-Process -FilePath $runDllPath -ArgumentList "$dllPath,PrintUIEntry /Sr /n `"$Name`" /a `"$($ConfigFile.FullName)`" c d g u r p H" -Wait
+}
+
 function Add-NetworkPrinter {
     param(
-        [Parameter(Mandatory,ParameterSetName='Printer')][String]$Name,
-        [Parameter(Mandatory,ParameterSetName='Printer')][String]$DriverName,
-        [Parameter(Mandatory,ParameterSetName='Printer')][String]$DriverPath,
-        [Parameter(Mandatory,ParameterSetName='Printer')][String]$IP
+        [Parameter(Mandatory = $true)]
+        # Name given to the printer.
+        [String]$Name,
+
+        [Parameter(Mandatory = $true)]
+        # Name of the driver.
+        [String]$DriverName,
+
+        [Parameter(Mandatory = $true)]
+        # Path to the INF file to install the driver.
+        [System.IO.FileInfo]$DriverPath,
+
+        [Parameter(Mandatory = $true)]
+        # IP on which the printer can be found and port that will be configured on the device.
+        # If an existing port already has the given IP, it will be used.
+        [String]$IP,
+
+        [Parameter()]
+        # Printing configuration file you want to apply to the newly installed printer.
+        [System.IO.FileInfo]$PrinterSettings
     )
 
-    "`n$(Get-Date -Format 'yyyyMMdd - HH:mm:ss' ) - Start printer install : $Name" | Out-File @Global:Parameters
+    "`n$(Get-Date -Format 'yyyyMMdd - HH:mm:ss') - Start printer install : $Name" | Out-File @Global:Parameters
 
     # Replaces relative paths with fully defined ones.
-    if($DriverPath -match '\.\\'){
-        $DriverPath = $DriverPath.Replace('.\',"$PSScriptRoot\")
+    if ($DriverPath -match '\.\\') {
+        $DriverPath = $DriverPath -replace '\.\\', "$PSScriptRoot\"
         "Relative path replaced with literal path : $DriverPath" | Out-File @Global:Parameters
     }
 
@@ -77,51 +143,63 @@ function Add-NetworkPrinter {
 
     # Port configuration.
     $IPs = Get-PrinterPort 
-    if($IPs.PrinterHostAddress -notcontains $IP){
+    if ($IPs.PrinterHostAddress -notcontains $IP) {
         "Port added for : $IP" | Out-File @Global:Parameters
         Add-PrinterPort -Name $IP -PrinterHostAddress $IP
         $Port = $IP
-    }else{
+    }
+    else {
         "Port $IP already present" | Out-File @Global:Parameters
         $Port = $IPs[$IPs.PrinterHostAddress.IndexOf($IP)].Name
     }
 
     # Driver configuration.
-    if(Test-PnpPrinterDriver $DriverPath){
+    if (Test-PnpPrinterDriver $DriverPath) {
         "Driver file `"$DriverPath`" already present in repository." | Out-File @Global:Parameters
-    }else{
-        if([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM"){
+    }
+    else {
+        if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM") {
             $pnputilPath = "C:\Windows\sysnative\pnputil.exe"
             # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
-        }else{
+        }
+        else {
             $pnputilPath = "C:\Windows\System32\pnputil.exe"
         }
         "Driver file `"$DriverPath`" not found in repository.`nAttempting to add it to printer driver repository." | Out-File @Global:Parameters
         Start-Process -FilePath $pnputilPath -ArgumentList "/add-driver $DriverPath" -Wait
-        if(Test-PnpPrinterDriver $DriverPath){
+        if (Test-PnpPrinterDriver $DriverPath) {
             "Driver successfully installed." | Out-File @Global:Parameters
-        }else{
+        }
+        else {
             "Driver file $DriverFile not found in repository post installation. Exiting with retry code." | Out-File @Global:Parameters
             return 1618
         }
     }
 
     $Drivers = Get-PrinterDriver
-    if($Drivers.Name -notcontains $DriverName){
+    if ($Drivers.Name -notcontains $DriverName) {
         Add-PrinterDriver -Name $DriverName
         "Driver `"$DriverName`" added to the printer driver repository" | Out-File @Global:Parameters 
-    }else{
+    }
+    else {
         "Driver `"$DriverName`" already present" | Out-File @Global:Parameters
     }
 
     # Printer configuration.
     $Printers = Get-Printer
-    if($Printers.Name -notcontains $Name){
+    if ($Printers.Name -notcontains $Name) {
         "Printer $Name has been added" | Out-File @Global:Parameters
         Add-Printer -Name $Name -DriverName $DriverName -PortName $Port
-    }else{
+    }
+    else {
         "Printer $Name is already present" | Out-File @Global:Parameters
     }
+
+    if ($PrinterSettings) {
+        "Applying printer settings: $PrinterSettings" | Out-File @Global:Parameters
+        Add-PrinterSettings -Name $Name -ConfigFile $PrinterSettings
+    }
+
     return
 
 
@@ -133,19 +211,6 @@ function Add-NetworkPrinter {
         Verifies if the required port and drivers are present on the device before
         trying to add the requested printer to the device.
 
-        .PARAMETER Name
-        Name given to the printer.
-
-        .PARAMETER DriverName
-        Name of the driver.
-
-        .PARAMETER DriverPath
-        Path to the INF file to install the driver.
-
-        .PARAMETER IP
-        IP on which the printer can be found and port that will be configured on the device.
-        If an existing port already has the given IP, it will be used.
-
         .INPUTS
         None. You can't pipe objects to Add-NetworkPrinter.
 
@@ -153,7 +218,7 @@ function Add-NetworkPrinter {
         The script will create a log file in the script's current directory named after the script.
 
         .EXAMPLE
-        PS> Add-NetworkPrinter -Name "Admin Printer" -DriverName "KONICA MINOLTA Universal PCL" -DriverPath ".\Drivers\KOAWUJ__.inf" -IP "10.10.0.1"
+        PS> Add-NetworkPrinter -Name "Admin Printer" -DriverName "KONICA MINOLTA Universal PCL" -DriverPath ".\Drivers\KOAWUJ__.inf" -IP "10.10.0.1" -PrinterSettings ".\Admin_color.dat"
 
         .LINK
         Online version: https://github.com/AlCpwnd/PrintDeploy
@@ -171,23 +236,23 @@ function Add-NetworkPrinter {
 
 switch ($PsCmdlet.ParameterSetName) {
     "Printer" {
-        Add-NetworkPrinter -Name $Name -DriverName $DriverName -DriverPath $DriverPath -IP $IP -OutVariable ExitCode
+        Add-NetworkPrinter @PSBoundParameters
     }
     "File" {
         # Replaces relative paths with fully defined ones.
-        if($Path -match '\.\\'){
-            $Path = $Path.Replace('.\',"$PSScriptRoot\")
+        if ($Path -match '\.\\') {
+            $Path = $Path.Replace('.\', "$PSScriptRoot\")
             "Relative path replaced with literal path : $Path" | Out-File @Global:Parameters
         }
         "Recovering printers from config file : $Path" | Out-File @Global:Parameters
         Import-Csv -Path $Path -OutVariable Printers | Out-File @Global:Parameters
-        $ExitCode = foreach($Printer in $Printers){
-            Add-NetworkPrinter -Name $Printer.Name -DriverName $Printer.DriverName -DriverPath $Printer.DriverPath -IP $Printer.IP
+        $ExitCode = foreach ($Printer in $Printers) {
+            Add-NetworkPrinter @Printer
         }
     }
 }
 
-if($ExitCode){
+if ($ExitCode) {
     exit $ExitCode
 }
 
@@ -197,24 +262,8 @@ if($ExitCode){
     Adds a network printer to the current computer.
 
     .DESCRIPTION
-    Verifies if the required port and drivers are present on the device before
-    trying to add the requested printer to the device.
-
-    .PARAMETER Name
-    Name given to the printer.
-
-    .PARAMETER DriverName
-    Name of the driver.
-
-    .PARAMETER DriverPath
-    Path to the INF file to install the driver.
-
-    .PARAMETER IP
-    IP on which the printer can be found and port that will be configured on the device.
-    If an existing port already has the assigned IP, it will be reused.
-
-    .PARAMETER Path
-    CSV configuration file containing the multiple printers you want to add to the current device.
+    Verifies if the required port and drivers are present on the device before trying to add the requested printer to the device.
+    If a printing configuration file is referenced, the script will attempt to apply it to the printer.
 
     .INPUTS
     None. You can't pipe objects to Add-NetworkPrinter.
@@ -223,7 +272,7 @@ if($ExitCode){
     The script will create a log file in the current 
 
     .EXAMPLE
-    PS> Add-NetworkPrinter -Name "Admin Printer" -DriverName "KONICA MINOLTA Universal PCL" -DriverPath ".\Drivers\KOAWUJ__.inf" -IP "10.10.0.1"
+    PS> Add-NetworkPrinter -Name "Admin Printer" -DriverName "KONICA MINOLTA Universal PCL" -DriverPath ".\Drivers\KOAWUJ__.inf" -IP "10.10.0.1" -PrinterSettings ".\KonicaAdmin_color.dat"
 
     .EXAMPLE
     PS> Add-NetworkPrinter -Path .\Printers.csv
