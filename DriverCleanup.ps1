@@ -6,7 +6,7 @@ param(
 )
 
 $params = @{
-    FilePath = "$env:windir\Temp\DriverCleanup.log"
+    FilePath = "C:\Windows\Temp\DriverCleanup.log"
     Encoding = "utf8"
     Append   = $true
 }
@@ -54,7 +54,7 @@ if(-not $returnCode){
         Start-Process -FilePath $pnputilPath -ArgumentList "/delete-driver $($inf.Driver)" -Wait
         "Driver removed: {0} - {1}" -f $inf.Driver, $inf.OriginalFileName | Out-File @params
     }
-    New-Item -Path "$env:windir\Temp\Cleanup.log"
+    New-Item -Path "C:\Windows\Temp\Cleanup.log"
 }
 
 return $returnCode
