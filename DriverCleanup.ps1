@@ -54,6 +54,7 @@ if(-not $returnCode){
         Start-Process -FilePath $pnputilPath -ArgumentList "/delete-driver $($inf.Driver)" -Wait
         "Driver removed: {0} - {1}" -f $inf.Driver, $inf.OriginalFileName | Out-File @params
     }
+    New-Item -Path "$env:windir\Temp\Cleanup.log"
 }
 
 return $returnCode
@@ -67,6 +68,10 @@ return $returnCode
     Removes all printer drivers from a device that are associated with a specific provide.
     If the driver is associated to a printer, the printer will first be removed before the driver
     removal is attempted.
+
+    .NOTES
+    If the script ran without issues, it will create a "Cleanup.log" file within the Windows Temp
+    directory.
 
     .LINK
     Remove-Printer
