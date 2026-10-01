@@ -1,4 +1,4 @@
-#Requires -Modules PrintManagement -RunAsAdministrator 
+#Requires -Modules PrintManagement,Dism -RunAsAdministrator 
 
 param(
     [Parameter(Mandatory = $true, ParameterSetName = 'Printer')]
@@ -28,9 +28,8 @@ param(
 )
 
 # Creates a log file in the Windows temp directory.
-$LogPath = "$env:windir\Temp\$((Split-Path $PSCommandPath -Leaf).Replace('.ps1','.log'))"
 $Global:Parameters = @{
-    FilePath = $LogPath
+    FilePath = "$env:windir\Temp\$((Split-Path $PSCommandPath -Leaf).Replace('.ps1','.log'))"
     Encoding = "utf8"
     Append   = $true
 }
@@ -42,15 +41,8 @@ function Test-PnpPrinterDriver {
         [String]$Driver
     )
     $Driver = Split-Path -Path $Driver -Leaf
-    if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM") {
-        $pnputilPath = "C:\Windows\sysnative\pnputil.exe"
-        # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
-    }
-    else {
-        $pnputilPath = "C:\Windows\System32\pnputil.exe"
-    }
-    $PnpPrinterDrivers = & $pnputilPath /enum-drivers
-    if ($PnpPrinterDrivers | Where-Object { $_ -match $Driver }) {
+    $PnpPrinterDrivers = Get-WindowsDriver -Online -All
+    if ($PnpPrinterDrivers.OriginalFileName | Where-Object { $_ -match $Driver }) {
         return $true
     }
     else {
@@ -161,7 +153,7 @@ function Add-NetworkPrinter {
         if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM") {
             $pnputilPath = "C:\Windows\sysnative\pnputil.exe"
             # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
-        }
+        }        
         else {
             $pnputilPath = "C:\Windows\System32\pnputil.exe"
         }
@@ -196,7 +188,7 @@ function Add-NetworkPrinter {
     }
 
     if ($PrinterSettings) {
-        "Applying printer settings: $PrinterSettings" | Out-File @Global:Parameters
+        "Applying printer settings: $PinterSettings" | Out-File @Global:Parameters
         Add-PrinterSettings -Name $Name -ConfigFile $PrinterSettings
     }
 
