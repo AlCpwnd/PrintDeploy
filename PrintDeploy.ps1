@@ -28,7 +28,6 @@ param(
 )
 
 # Creates a log file in the Windows temp directory.
-$LogPath = "$env:windir\Temp\$((Split-Path $PSCommandPath -Leaf).Replace('.ps1','.log'))"
 $Global:Parameters = @{
     FilePath = "$env:windir\Temp\$((Split-Path $PSCommandPath -Leaf).Replace('.ps1','.log'))"
     Encoding = "utf8"
