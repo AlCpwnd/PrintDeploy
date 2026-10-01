@@ -1,4 +1,4 @@
-#Requires -Modules PrintManagement -RunAsAdministrator 
+#Requires -Modules PrintManagement,Dism -RunAsAdministrator 
 
 param(
     [Parameter(Mandatory = $true, ParameterSetName = 'Printer')]
@@ -153,7 +153,7 @@ function Add-NetworkPrinter {
         if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM") {
             $pnputilPath = "C:\Windows\sysnative\pnputil.exe"
             # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
-        }
+        }        
         else {
             $pnputilPath = "C:\Windows\System32\pnputil.exe"
         }
@@ -187,7 +187,7 @@ function Add-NetworkPrinter {
         "Printer $Name is already present" | Out-File @Global:Parameters
     }
 
-    if($PrinterSettings){
+    if ($PrinterSettings) {
         "Applying printer settings: $PinterSettings" | Out-File @Global:Parameters
         Add-PrinterSettings -Name $Name -ConfigFile $PrinterSettings
     }
@@ -250,10 +250,10 @@ switch ($PsCmdlet.ParameterSetName) {
         Import-Csv -Path $Path -OutVariable Printers | Out-File @Global:Parameters
         $ExitCode = foreach ($Printer in $Printers) {
             $params = @{
-                Name        = $Name
-                DriverName  = $DriverName
-                DriverPath  = $DriverPath
-                IP          = $IP
+                Name       = $Name
+                DriverName = $DriverName
+                DriverPath = $DriverPath
+                IP         = $IP
             }
             if ($PrinterSettings) {
                 $params['PrinterSettings'] = $PrinterSettings
