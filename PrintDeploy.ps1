@@ -41,15 +41,8 @@ function Test-PnpPrinterDriver {
         [String]$Driver
     )
     $Driver = Split-Path -Path $Driver -Leaf
-    if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -eq "NT AUTHORITY\SYSTEM") {
-        $pnputilPath = "C:\Windows\sysnative\pnputil.exe"
-        # Source: https://www.itninja.com/question/pnputil-exe-is-not-recognized-as-the-name-of-a-cmdlet-only-through-kace
-    }
-    else {
-        $pnputilPath = "C:\Windows\System32\pnputil.exe"
-    }
-    $PnpPrinterDrivers = & $pnputilPath /enum-drivers
-    if ($PnpPrinterDrivers | Where-Object { $_ -match $Driver }) {
+    $PnpPrinterDrivers = Get-WindowsDriver -Online -All
+    if ($PnpPrinterDrivers.OriginalFileName | Where-Object { $_ -match $Driver }) {
         return $true
     }
     else {
